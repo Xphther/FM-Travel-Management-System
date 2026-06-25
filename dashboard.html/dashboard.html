@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FM Logistic Portal</title>
+
+
+<style>
+
+.notification-panel{
+display:none;
+position:fixed;
+top:75px;
+right:30px;
+width:300px;
+background:#fff;
+padding:15px;
+border-radius:12px;
+box-shadow:0 10px 30px rgba(0,0,0,.15);
+z-index:99999;
+border:1px solid #e5e7eb;
+}
+    
+:root{
+--red:#ef2b2d;
+--red-dark:#d91f21;
+--blue:#002b7f;
+--ink:#171717;
+--muted:#687386;
+--line:#e5e7eb;
+--soft:#f7f8fa;
+--nav-open:#eaf0fa;
+}
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:"Segoe UI Variable Text","Segoe UI",sans-serif;
+}
+
+body{
+min-height:100vh;
+background:
+radial-gradient(circle at 12% 18%,rgba(239,43,45,.12),transparent 26%),
+radial-gradient(circle at 88% 12%,rgba(0,43,127,.13),transparent 28%),
+linear-gradient(135deg,#f9fbff 0%,#fff8f7 48%,#f5f8ff 100%);
+background-size:140% 140%;
+animation:portalBackground 16s ease-in-out infinite alternate;
+color:var(--ink);
+}
+
+body::before,
+body::after{
+content:"";
+position:fixed;
+width:320px;
+height:320px;
+border-radius:50%;
+filter:blur(70px);
+opacity:.16;
+pointer-events:none;
+z-index:-1;
+animation:backgroundFloat 13s ease-in-out infinite alternate;
+}
+
+body::before{
+top:18%;
+left:20%;
+background:#ef2b2d;
+}
+
+body::after{
+right:4%;
+bottom:4%;
+background:#2d68da;
+animation-delay:-5s;
+}
+
+button,input,select{
+font:inherit;
+}
+
+button{
+cursor:pointer;
+}
+
+.app{
+display:flex;
+min-height:100vh;
+}
+
+.sidebar{
+position:fixed;
+inset:0 auto 0 0;
+width:240px;
+padding:18px 14px;
+background:rgba(255,255,255,.88);
+backdrop-filter:blur(18px);
+border-right:1px solid var(--line);
+overflow-y:auto;
+z-index:20;
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+padding:4px 8px 20px;
+}
+
+.brand img{
+width:46px;
+height:46px;
+object-fit:contain;
+border-radius:9px;
+}
+
+.brand strong{
+display:block;
+color:var(--blue);
+font-size:15px;
+}
+
+.brand span{
+color:var(--muted);
+font-size:12px;
+}
+
+.nav-item,
+.nav-toggle,
+.subnav a{
+display:flex;
+align-items:center;
+width:100%;
+border:0;
+border-radius:6px;
+background:transparent;
+color:#222;
+text-decoration:none;
+transition:background .2s,color .2s,transform .2s;
+}
+
+.nav-item,
+.nav-toggle{
+gap:12px;
+padding:12px 10px;
+font-size:15px;
+text-align:left;
+}
+
+.nav-item:hover,
+.nav-toggle:hover{
+background:#f4f5f7;
+transform:translateX(2px);
+}
+
+.nav-item:active,
+.nav-toggle:active{
+transform:scale(.98);
+}
+
+.nav-item.home-link{
+color:var(--blue);
+font-weight:650;
+}
+
+.nav-icon{
+width:20px;
+font-size:17px;
+text-align:center;
+}
+
+.chevron{
+margin-left:auto;
+font-size:18px;
+transition:transform .25s;
+}
+
+.nav-group.open{
+padding-bottom:8px;
+border-radius:6px;
+background:var(--nav-open);
+box-shadow:inset 3px 0 #6282b8;
+}
+
+.nav-group.open .nav-toggle{
+font-weight:700;
+}
+
+.nav-group.open .chevron{
+transform:rotate(180deg);
+}
+
+.subnav{
+display:none;
+padding-left:20px;
+}
+
+.nav-group.open .subnav{
+display:block;
+}
+
+.subnav a{
+padding:9px 15px;
+margin:2px 0;
+color:#455a78;
+font-size:12px;
+}
+
+.subnav a:hover{
+background:rgba(255,255,255,.7);
+color:var(--blue);
+}
+
+.subnav a.active{
+background:#fff;
+color:var(--blue);
+box-shadow:0 2px 10px rgba(0,43,127,.08);
+}
+
+.main{
+width:calc(100% - 240px);
+margin-left:240px;
+min-width:0;
+background:rgba(255,255,255,.58);
+backdrop-filter:blur(4px);
+}
+
+.page-header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+height:64px;
+padding:0 26px;
+border-bottom:1px solid var(--line);
+background:rgba(255,255,255,.78);
+backdrop-filter:blur(14px);
+}
+
+.page-header h1{
+font-size:28px;
+font-weight:750;
+letter-spacing:-.5px;
+}
+.notification-bell{
+position:relative;
+width:50px;
+height:50px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+cursor:pointer;
+background:white;
+border-radius:50%;
+box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+.header-actions{
+display:flex;
+align-items:center;
+gap:8px;
+}
+
+.icon-button{
+position:relative;
+display:grid;
+place-items:center;
+width:38px;
+height:38px;
+border:0;
+border-radius:50%;
+background:#fff;
+font-size:19px;
+transition:background .2s,box-shadow .2s,transform .2s;
+}
+
+.icon-button:hover{
+background:#f6f7f9;
+box-shadow:0 5px 16px rgba(0,0,0,.1);
+transform:translateY(-2px);
+}
+.notification-bell:hover{
+background:#f5f7fb;
+}
+.notification-panel p{
+padding:10px 0;
+border-bottom:1px solid #eee;
+}
+.assistant-button{
+box-shadow:0 0 18px rgba(130,90,220,.28);
+}
+
+.badge{
+position:absolute;
+top:-3px;
+right:-3px;
+display:grid;
+place-items:center;
+min-width:16px;
+height:16px;
+padding:0 4px;
+border-radius:10px;
+background:var(--red);
+color:#fff;
+font-size:9px;
+font-weight:600;
+}
+
+.notification-dropdown{
+display:none;
+position:absolute;
+right:54px;
+top:56px;
+width:310px;
+padding:12px;
+border:1px solid var(--line);
+border-radius:12px;
+background:#fff;
+box-shadow:0 18px 50px rgba(18,28,45,.16);
+z-index:40;
+}
+
+.notification-dropdown.open{
+display:block;
+animation:dropIn .2s ease-out;
+}
+
+.header-popover{
+display:none;
+position:absolute;
+top:56px;
+width:260px;
+padding:12px;
+border:1px solid var(--line);
+border-radius:12px;
+background:#fff;
+box-shadow:0 18px 50px rgba(18,28,45,.16);
+z-index:40;
+}
+
+.header-popover.open{
+display:block;
+animation:dropIn .2s ease-out;
+}
+
+.assistant-menu{
+right:92px;
+}
+
+.profile-menu{
+right:18px;
+}
+
+.popover-title{
+padding:5px 7px 10px;
+color:#111827;
+font-size:13px;
+font-weight:750;
+}
+
+.popover-link{
+display:flex;
+align-items:center;
+gap:10px;
+width:100%;
+padding:10px;
+border:0;
+border-radius:7px;
+background:#fff;
+color:#303846;
+font-size:13px;
+text-decoration:none;
+text-align:left;
+}
+
+.popover-link:hover{
+background:#f1f5fb;
+color:var(--blue);
+}
+
+.profile-summary{
+padding:7px 8px 12px;
+border-bottom:1px solid var(--line);
+margin-bottom:6px;
+}
+
+.profile-summary strong,
+.profile-summary span{
+display:block;
+}
+
+.profile-summary span{
+margin-top:3px;
+color:var(--muted);
+font-size:11px;
+}
+
+.notice{
+display:block;
+padding:12px;
+border-radius:8px;
+background:#f7f8fa;
+color:#303846;
+font-size:14px;
+text-decoration:none;
+transition:background .2s,transform .2s;
+}
+
+.notice + .notice{
+margin-top:8px;
+}
+
+.notice:hover{
+background:#edf3fb;
+transform:translateX(2px);
+}
+
+.status-tabs{
+display:flex;
+gap:18px;
+padding:0 25px;
+border-bottom:1px solid var(--line);
+background:rgba(255,255,255,.72);
+}
+
+.status-tab{
+position:relative;
+display:flex;
+align-items:center;
+gap:9px;
+padding:16px 10px 13px;
+border:0;
+background:transparent;
+font-size:15px;
+}
+
+.status-tab::after{
+content:"";
+position:absolute;
+left:0;
+right:0;
+bottom:-1px;
+height:3px;
+border-radius:4px 4px 0 0;
+background:transparent;
+}
+
+.status-tab:hover{
+color:var(--red);
+}
+
+.status-tab.active::after{
+background:var(--red);
+}
+
+.toolbar{
+position:relative;
+display:flex;
+align-items:center;
+min-height:48px;
+padding:0 14px;
+border-bottom:1px solid var(--line);
+background:rgba(255,255,255,.76);
+}
+
+.tool-button{
+display:flex;
+align-items:center;
+gap:9px;
+padding:10px 16px;
+border:0;
+border-right:1px solid var(--line);
+background:#fff;
+font-size:14px;
+transition:color .2s,background .2s;
+}
+
+.tool-button:hover,
+.tool-button.active{
+color:var(--red);
+background:#fffafa;
+}
+
+.search-wrap{
+display:flex;
+align-items:center;
+gap:8px;
+padding-left:16px;
+}
+
+.search-wrap input{
+width:150px;
+padding:7px 4px;
+border:0;
+outline:0;
+}
+
+.popover{
+display:none;
+position:absolute;
+top:52px;
+padding:15px;
+border:1px solid var(--line);
+border-radius:10px;
+background:#fff;
+box-shadow:0 16px 40px rgba(18,28,45,.14);
+z-index:30;
+}
+
+.popover.open{
+display:block;
+animation:dropIn .18s ease-out;
+}
+
+.filter-popover{
+left:205px;
+width:255px;
+}
+
+.filter-popover label{
+display:block;
+margin-bottom:6px;
+color:var(--muted);
+font-size:12px;
+font-weight:700;
+}
+
+.filter-popover select{
+width:100%;
+margin-bottom:12px;
+padding:9px;
+border:1px solid #d8dce3;
+border-radius:6px;
+background:#fff;
+}
+
+.filter-actions{
+display:flex;
+gap:8px;
+}
+
+.small-button{
+flex:1;
+padding:8px 10px;
+border:1px solid #d7dbe2;
+border-radius:6px;
+background:#fff;
+}
+
+.small-button.primary{
+border-color:var(--red);
+background:var(--red);
+color:#fff;
+}
+
+.calendar{
+left:14px;
+width:365px;
+padding:0;
+overflow:hidden;
+}
+
+.calendar-head{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:14px 16px;
+border-bottom:1px solid var(--line);
+}
+
+.calendar-head h3{
+font-size:14px;
+}
+
+.calendar-close{
+border:0;
+background:transparent;
+font-weight:700;
+}
+
+.calendar-nav{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:16px;
+}
+
+.calendar-nav button{
+width:38px;
+height:38px;
+border:0;
+border-radius:5px;
+background:#e8edf5;
+}
+
+.calendar-title{
+font-weight:700;
+}
+
+.calendar-grid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:4px;
+padding:0 12px 14px;
+text-align:center;
+}
+
+.weekday{
+padding:6px 0;
+color:#7b8089;
+font-size:13px;
+font-weight:700;
+}
+
+.day{
+height:36px;
+border:1px solid transparent;
+border-radius:18px;
+background:#fff;
+font-size:13px;
+}
+
+.day:hover:not(:disabled){
+border-color:#ffaba3;
+background:#fff0ee;
+}
+
+.day.muted{
+color:#c7ccd4;
+}
+
+.day.in-range{
+border:1px dashed #e9a69e;
+background:#ffe0db;
+}
+
+.day.selected{
+border-color:var(--red);
+background:var(--red);
+color:#fff;
+}
+
+.content{
+padding:15px 25px 20px;
+}
+.create-button{
+display:inline-flex;
+align-items:center;
+gap:8px;
+margin-bottom:8px;
+padding:10px 18px;
+border:0;
+border-radius:6px;
+background:var(--red);
+color:#fff;
+font-weight:650;
+box-shadow:0 6px 14px rgba(239,43,45,.18);
+transition:background .2s,transform .2s,box-shadow .2s;
+}
+
+.create-button:hover{
+background:var(--red-dark);
+box-shadow:0 9px 20px rgba(239,43,45,.25);
+transform:translateY(-2px);
+}
+
+.table-wrap{
+overflow-x:auto;
+border:1px solid rgba(255,255,255,.8);
+border-radius:12px;
+background:rgba(255,255,255,.84);
+box-shadow:0 14px 35px rgba(32,49,78,.08);
+backdrop-filter:blur(12px);
+}
+
+.request-table{
+width:100%;
+min-width:970px;
+border-collapse:collapse;
+}
+
+.request-table th,
+.request-table td{
+padding:16px 11px;
+border-bottom:1px solid var(--line);
+text-align:left;
+vertical-align:middle;
+}
+
+.request-table th{
+height:60px;
+color:#111;
+font-size:14px;
+}
+
+.request-table td{
+color:var(--muted);
+font-size:14px;
+}
+
+.request-table tbody tr{
+transition:background .2s,box-shadow .2s,transform .2s;
+}
+
+.request-table tbody tr:hover{
+background:#fafbfc;
+box-shadow:inset 3px 0 var(--red);
+}
+
+.detail-link{
+color:#111;
+font-weight:600;
+text-decoration:underline;
+}
+
+.status-pill{
+display:inline-block;
+padding:5px 9px;
+border-radius:14px;
+background:#fff1c7;
+color:#7b5a00;
+font-size:12px;
+font-weight:700;
+}
+
+.status-pill.declined{
+background:#ffe0df;
+color:#a51d20;
+}
+
+.status-pill.completed{
+background:#dcf3e3;
+color:#176b32;
+}
+
+.action-cell{
+white-space:nowrap;
+}
+
+.view-button,
+.more-button{
+border:1px solid #222;
+border-radius:6px;
+background:#fff;
+transition:background .2s,transform .2s;
+}
+
+.view-button{
+padding:7px 14px;
+}
+
+.more-button{
+margin-left:6px;
+padding:7px 10px;
+border-color:#e2e5ea;
+font-weight:900;
+}
+
+.view-button:hover,
+.more-button:hover{
+background:#f2f3f5;
+transform:translateY(-1px);
+}
+
+.row-menu{
+display:none;
+position:absolute;
+right:28px;
+width:135px;
+padding:6px;
+border:1px solid var(--line);
+border-radius:8px;
+background:#fff;
+box-shadow:0 12px 30px rgba(0,0,0,.12);
+z-index:10;
+}
+
+.row-menu.open{
+display:block;
+}
+
+.row-menu button{
+display:block;
+width:100%;
+padding:8px;
+border:0;
+border-radius:5px;
+background:#fff;
+text-align:left;
+}
+
+.row-menu button:hover{
+background:#f5f6f8;
+}
+
+.empty-state{
+display:none;
+padding:50px 20px;
+color:var(--muted);
+text-align:center;
+}
+
+.compact .request-table th,
+.compact .request-table td{
+padding-top:10px;
+padding-bottom:10px;
+}
+
+.toast{
+position:fixed;
+right:22px;
+bottom:22px;
+padding:11px 16px;
+border-radius:8px;
+background:#20242b;
+color:#fff;
+font-size:13px;
+opacity:0;
+transform:translateY(12px);
+pointer-events:none;
+transition:opacity .2s,transform .2s;
+z-index:80;
+}
+
+.toast.show{
+opacity:1;
+transform:translateY(0);
+}
+
+@keyframes reveal{
+from{opacity:0;transform:translateY(-5px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+@keyframes dropIn{
+from{opacity:0;transform:translateY(-7px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+@keyframes portalBackground{
+0%{background-position:0% 20%}
+100%{background-position:100% 80%}
+}
+
+@keyframes backgroundFloat{
+0%{transform:translate3d(-20px,-15px,0) scale(.9)}
+100%{transform:translate3d(55px,35px,0) scale(1.15)}
+}
+
+@media(max-width:850px){
+.sidebar{
+width:74px;
+padding:16px 9px;
+}
+
+.brand div,
+.nav-label,
+.chevron,
+.subnav{
+display:none!important;
+}
+
+.brand img{
+width:42px;
+}
+
+.nav-item,
+.nav-toggle{
+justify-content:center;
+}
+
+.main{
+width:calc(100% - 74px);
+margin-left:74px;
+}
+
+.page-header h1{
+font-size:22px;
+}
+
+.toolbar{
+flex-wrap:wrap;
+padding:6px;
+}
+
+.search-wrap{
+width:100%;
+padding:4px 12px;
+border-top:1px solid var(--line);
+}
+
+.search-wrap input{
+width:100%;
+}
+}
+.module-cards{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+margin-bottom:12px;
+}
+
+.card{
+background:white;
+padding:20px;
+flex:1;
+min-width:240px;
+border-radius:15px;
+box-shadow:0 5px 20px rgba(0,0,0,.08);
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-4px);
+box-shadow:0 10px 25px rgba(0,0,0,.12);
+}
+
+.card h2{
+margin-bottom:10px;
+color:#002b7f;
+}
+
+.module-cards > .card > button{
+margin-top:15px;
+background:#eef4ff;
+color:#002b7f;
+border:1px solid #d8e4ff;
+padding:10px 20px;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
+transition:.3s;
+}
+
+.module-cards > .card > button:hover{
+background:#dbe9ff;
+transform:translateY(-2px);
+}
+
+.shortcut-grid button:hover{
+background:#dbe9ff;
+}
+
+.logout-btn:hover{
+background:#dbe9ff;
+transform:translateY(-2px);
+}
+    
+.quick-actions{
+display:flex;
+gap:30px;
+margin:15px 0 20px;
+flex-wrap:wrap;
+}
+
+.action-item{
+text-align:center;
+cursor:pointer;
+}
+
+.circle-btn{
+width:80px;
+height:80px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+background:linear-gradient(135deg,#eef4ff,#dfeaff);
+color:#002b7f;
+font-size:32px;
+margin:auto;
+box-shadow:0 8px 20px rgba(0,43,127,.10);
+transition:.3s;
+border:1px solid #d8e4ff;
+}
+
+.circle-btn:hover{
+background:#dbe9ff;
+transform:translateY(-5px);
+}
+
+.action-item p{
+margin-top:10px;
+font-size:14px;
+font-weight:500;
+}
+
+.shortcut-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:8px;
+margin-top:10px;
+}
+
+
+.shortcut-grid button{
+width:100%;
+padding:8px;
+background:#eef4ff;
+color:#002b7f;
+border:1px solid #d8e4ff;
+border-radius:8px;
+font-weight:600;
+cursor:pointer;
+transition:.3s;
+font-size:13px;
+}
+.shortcut-grid button:hover{
+background:#dbe9ff;
+transform:translateY(-2px);
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="brand">
+    <img src="LOGO.jpg" alt="FM Logistic">
+</div>
+
+<nav>
+<a class="nav-item home-link" href="https://xphther.github.io/360-portal/dashboard.html">
+<span class="nav-icon">&#9638;</span><span class="nav-label">Home</span>
+</a>
+
+<div class="nav-group">
+
+<button class="nav-toggle" type="button">
+<span class="nav-icon">&#10003;</span>
+<span class="nav-label">Approvals</span>
+<span class="chevron">&#8964;</span>
+</button>
+
+<div class="subnav">
+
+<a href="approval.html">My Approvals</a>
+
+<a href="invoice-review.html">Invoice Approvals</a>
+
+<a href="purchase-approval.html">Purchase Approvals</a>
+
+<a href="travel-approval.html">Travel Approvals</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="nav-group">
+<button class="nav-toggle" type="button">
+<span class="nav-icon">&#9634;</span><span class="nav-label">Travel</span>
+<span class="chevron">&#8964;</span>
+</button>
+<div class="subnav">
+<a href="travel-request.html">New Travel Request</a>
+<a href="travel-dashboard.html">My Trips</a>
+<a href="hotel.html">Hotel Bookings</a>
+<a href="travel-policy.html">Travel Policy</a>
+</div>
+</div>
+<a class="nav-item" href="reports.html">
+<span class="nav-icon">&#9636;</span><span class="nav-label">Reports</span>
+</a>
+<div class="nav-group">
+
+<button class="nav-toggle" type="button">
+<span class="nav-icon">&#9881;</span>
+<span class="nav-label">Settings</span>
+<span class="chevron">&#8964;</span>
+</button>
+
+<div class="subnav">
+
+<a href="profile.html">My Profile</a>
+
+<a href="preferences.html">Preferences</a>
+
+<a href="helpdesk.html">Help Desk</a>
+
+<a href="portal-settings.html">Portal Settings</a>
+
+</div>
+
+</div>
+
+<div style="margin-top:40px;padding:0 10px;">
+
+<button onclick="logout()"
+style="
+width:100%;
+padding:12px;
+background:#eef4ff;
+color:#002b7f;
+border:1px solid #d8e4ff;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
+transition:.3s;">
+Logout
+</button>
+
+</div>
+
+</nav>
+</aside>
+
+<main class="main">
+
+<header class="page-header">
+
+<div>
+<h1 id="welcomeUser">Welcome</h1>
+<p style="color:#666;">
+Operations Department | Mumbai
+</p>
+</div>
+
+<div style="display:flex;align-items:center;gap:10px;">
+
+<div class="notification-bell" onclick="toggleNotifications()">
+🔔 <span class="badge">3</span>
+</div>
+
+</div>
+
+<div id="notificationPanel" class="notification-panel">
+<p>✈ Travel Request Approved</p>
+<p>🏨 Hotel Voucher Uploaded</p>
+<p>💳 Expense Claim Approved</p>
+</div>
+
+</header>
+
+<section class="content">
+
+<div class="module-cards">
+
+<div class="card"
+onclick="window.location.href='travel-dashboard.html'"
+style="cursor:pointer;">
+
+<h2>Travel Requests</h2>
+<h1 style="color:#002b7f;">12</h1>
+<p>This Month</p>
+
+</div>
+
+<div class="card"
+onclick="window.location.href='approval.html'"
+style="cursor:pointer;">
+
+<h2>Pending Approvals</h2>
+<h1 style="color:#ef2b2d;">3</h1>
+<p>Action Required</p>
+
+</div>
+
+</div>
+
+<h2 style="margin:10px 0 20px;color:#002b7f;">
+Travel Management
+</h2>
+    
+<div class="quick-actions">
+<div class="action-item"
+onclick="window.location.href='travel-request.html'">
+<div class="circle-btn">+</div>
+<p>New Travel Request</p>
+</div>
+
+<div class="action-item"
+onclick="window.location.href='travel-dashboard.html'">
+<div class="circle-btn">✈</div>
+<p>Flights</p>
+</div>
+
+<div class="action-item"
+onclick="window.location.href='travel-dashboard.html'">
+<div class="circle-btn">🚆</div>
+<p>Trains</p>
+</div>
+
+<div class="action-item"
+onclick="window.location.href='travel-dashboard.html'">
+<div class="circle-btn">🚌</div>
+<p>Bus</p>
+</div>
+
+</div> <!-- quick-actions -->
+
+<div class="module-cards">
+
+<div class="card"
+onclick="window.location.href='https://xphther.github.io/360-portal/travel-request.html'"
+style="cursor:pointer;">
+
+<h2>Travel Management</h2>
+<p>Create and track travel requests.</p>
+
+<button onclick="event.stopPropagation(); window.location.href='https://xphther.github.io/360-portal/travel-request.html'">
+Open Travel
+</button>
+
+</div>
+
+
+</div> <!-- module-cards -->
+
+<div class="module-cards">
+
+<div class="card">
+<h2>Travel Desk</h2>
+
+<p>📞 +91 98765 43210</p>
+<p>✉ traveldesk@fmlogistic.com</p>
+
+<button onclick="window.location.href='mailto:traveldesk@fmlogistic.com'">
+Contact Desk
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>Employee Shortcuts</h2>
+
+<div class="shortcut-grid">
+
+<button onclick="window.location.href='travel-request.html'">
+✈ New Trip
+</button>
+
+<button onclick="window.location.href='travel-dashboard.html'">
+📋 My Trips
+</button>
+
+<button onclick="window.location.href='travel-policy.html'">
+📄 Policy
+</button>
+
+</div>
+
+</div>
+</div> <!-- module-cards -->
+</section>
+</main>
+</div>
+
+<script>
+
+document.querySelectorAll(".nav-toggle").forEach(button => {
+
+button.addEventListener("click", () => {
+
+button.parentElement.classList.toggle("open");
+
+});
+
+});
+
+function toggleNotifications(){
+
+const panel=document.getElementById("notificationPanel");
+
+if(panel.style.display==="block"){
+panel.style.display="none";
+}else{
+panel.style.display="block";
+}
+
+}
+
+document.addEventListener("click", function(e){
+
+const bell=document.querySelector(".notification-bell");
+const panel=document.getElementById("notificationPanel");
+
+if(
+!bell.contains(e.target) &&
+!panel.contains(e.target)
+){
+panel.style.display="none";
+}
+
+});
+
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script>
+
+const firebaseConfig = {
+apiKey:"AIzaSyDghYujwS8c8g-wolAklzLufF_j2qzEyDc",
+authDomain:"xphther.firebaseapp.com",
+projectId:"xphther",
+storageBucket:"xphther.firebasestorage.app",
+messagingSenderId:"771665767472",
+appId:"1:771665767472:web:a1a857d5589de4c38a51f5"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+firebase.auth().onAuthStateChanged(function(user){
+
+if(!user){
+
+window.location.href="login.html";
+
+return;
+
+}
+
+document.getElementById("welcomeUser").innerHTML =
+"Welcome, " + user.email;
+
+});
+
+function logout(){
+
+firebase.auth().signOut().then(function(){
+
+window.location.href="login.html";
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
